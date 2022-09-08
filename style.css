@@ -2,3 +2,11 @@ html {
     text-align: center;
     background-color: #12141f;
 }
+
+
+@font-face {
+    font-family: dogicaPixel;
+    src: url('Assets/Font/dogicapixel.ttf');
+    font-weight: 400;
+    font-weight: normal;
+}
