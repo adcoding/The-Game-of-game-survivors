@@ -2,10 +2,10 @@ let bg;
 let title;
 let p;
 let button;
-let rectL;
-let rectR;
-let rectC;
 
+import IncreaseSpeed from './Upgrades/increase_speed.js';
+import IncreaseDamage from './Upgrades/increase_damage.js';
+import IncreaseFireRate from './Upgrades/increase_firerate.js';
 export default class Upgrade extends Phaser.Scene {
     constructor() {
         super('upgradeScene');
@@ -14,7 +14,6 @@ export default class Upgrade extends Phaser.Scene {
     preload() {
 
         this.load.image('bg', 'Assets/UI/bg.png');
-        this.load.image('cardbg', 'Assets/UI/cardbg.png');
 
     }
 
@@ -36,32 +35,44 @@ export default class Upgrade extends Phaser.Scene {
             fontSize: '15px',
             align: 'center'
         }).setOrigin(0.5);
+        
 
-        rectL = this.add.image(screenCenterX - 350, screenCenterY, 'cardbg');
-        rectC = this.add.image(screenCenterX, screenCenterY, 'cardbg');
-        rectR = this.add.image(screenCenterX + 350, screenCenterY, 'cardbg');
+        this.scene.add(this, IncreaseSpeed, true);
+        this.scene.get('increase_speed').events.on('upgrade-speed', speed => this.events.emit('upgrade-action-speed', speed));
 
-        button = this.add.text(screenCenterX, screenCenterY + 260, 'Continue', {
-            fontFamily: 'dogicaPixel',
-            fontSize: '20px',
-            align: 'center'
-        }).setOrigin(0.5).setInteractive();
+        this.scene.add(this, IncreaseDamage, true);
+        this.scene.get('increase_damage').events.on('upgrade-damage', damage => this.events.emit('upgrade-action-damage', damage));
 
-        button.on('pointerdown', () => {
-            this.scene.stop();
-            this.scene.resume('game');
-        });
+        this.scene.add(this, IncreaseFireRate, true);
+        this.scene.get('increase_firerate').events.on('upgrade-firerate', firerate => this.events.emit('upgrade-action-firerate', firerate));
+
+        // button = this.add.text(screenCenterX, screenCenterY + 260, 'Continue', {
+        //     fontFamily: 'dogicaPixel',
+        //     fontSize: '20px',
+        //     align: 'center'
+        // }).setOrigin(0.5).setInteractive();
+
+
+        
     }
 
     update() {
 
-        button.on('pointerover', function (pointer) {
-            button.setScale(1.5);
-        })
+        // button.on('pointerdown', () => {
+        //     this.scene.remove('increase_speed');
+        //     this.scene.remove('increase_damage');
+        //     this.scene.remove('increase_firerate');
+        //     this.scene.stop();
+        //     this.scene.resume('game');
+        // });
 
-        button.on('pointerout', function (pointer) {
-            button.setScale(1);
-        })
+        // button.on('pointerover', function (pointer) {
+        //     button.setScale(1.5);
+        // })
+
+        // button.on('pointerout', function (pointer) {
+        //     button.setScale(1);
+        // })
 
     }
 }

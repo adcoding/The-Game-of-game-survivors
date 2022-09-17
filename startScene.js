@@ -4,6 +4,8 @@ let title;
 let playText;
 let creditsText;
 
+let UIsound;
+
 export default class StartScene extends Phaser.Scene {
     constructor() {
         super('startScene');
@@ -17,6 +19,7 @@ export default class StartScene extends Phaser.Scene {
             frameHeight: 126
         });
 
+        this.load.audio("UIsound", ["Assets/Sounds/uisound.mp3"]);
     }
 
     create() {
@@ -62,12 +65,15 @@ export default class StartScene extends Phaser.Scene {
 
         playText.on('pointerdown', () => {
             this.scene.start('game');
+            UIsound.play();
         });
 
         creditsText.on('pointerdown', () => {
+            UIsound.play();
             this.scene.start('credits');
         });
 
+        UIsound = this.sound.add("UIsound", { loop: false , volume: 1});
     }
 
     update() {

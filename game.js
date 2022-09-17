@@ -7,6 +7,7 @@ let gun;
 let playerWithGun;
 let input;
 let bullet;
+let bullet_damage;
 let mouse;
 let control = false;
 let worldBounds;
@@ -16,12 +17,15 @@ let particles;
 let rectangle;
 let enemy;
 let enemy_group;
+let enemy_health;
 let damage;
 let the;
 let total;
 let test;
 
 let blood;
+let bloodPlayer;
+
 let playerDirectionY = 0;
 let playerDirectionX = 0;
 let playerSpeed = 300;
@@ -42,7 +46,13 @@ let player_level = 1; // player level
 let xp_modifier = 0.5;
 
 let timedEvent;
+// sounds effects
+let gunSound;
+let mainMusic;
+let collectOrbs;
+let levelUpSound;
 
+import IncreaseSpeed from './Upgrades/increase_speed.js'
 export default class Game extends Phaser.Scene {
     constructor() {
         super('game');
@@ -71,6 +81,11 @@ export default class Game extends Phaser.Scene {
             frameHeight: 100
         });
 
+        this.load.spritesheet('bloodPlayer', 'Assets/Particles/bloodPlayer.png', {
+            frameWidth: 100,
+            frameHeight: 100
+        });
+
         this.load.image('bgHealthBar', 'Assets/UI/bgHealthBar.png');
         this.load.image('healthBar', 'Assets/UI/healthBar.png');
 
@@ -78,6 +93,12 @@ export default class Game extends Phaser.Scene {
         this.load.image('xpBar', 'Assets/UI/xpBar.png');
 
         this.load.image('xpPoint', 'Assets/Enemy/xpPoint.png');
+
+        // audio !!
+        this.load.audio("gunShot", ["Assets/Sounds/gunShot.mp3"]);
+        this.load.audio("mainMusic", ["Assets/Sounds/mainMusic.mp3"]);
+        this.load.audio("collectOrbs", ["Assets/Sounds/collectOrbs.mp3"]);
+        this.load.audio("levelUpSound", ["Assets/Sounds/levelUp.mp3"]);
 
     }
 
@@ -116,6 +137,7 @@ export default class Game extends Phaser.Scene {
         playerWithGun = this.add.container(width / 2, height / 2, [shadow, player, gun, bullet]).setDepth(3);
         this.physics.world.enable(playerWithGun);
 
+        //playerWithGun.setCollideWorldBounds(true);
         mouse = this.input.mousePointer;
 
         // animations
@@ -160,6 +182,16 @@ export default class Game extends Phaser.Scene {
             repeat: 0
         });
 
+        this.anims.create({
+            key: 'bloodPlayer',
+            frames: this.anims.generateFrameNumbers('bloodPlayer', {
+                start: 0,
+                end: 12
+            }),
+            frameRate: 40,
+            repeat: 0
+        });
+
         enemy_group.playAnimation('enemyIdle');
 
         emitter = this.add.particles('bullet').createEmitter({
@@ -172,15 +204,15 @@ export default class Game extends Phaser.Scene {
             frequency: -1
         });
 
-        rectangle = this.add.rectangle(100, 800, width * 2, 150, 0x1a1d2d);
+        rectangle = this.add.rectangle(100, 800, width * 2, 150, 0x1a1d2d).setDepth(6);
 
         // health bar
-        bgHealthBar = this.add.image(40, 755, 'bgHealthBar').setScale(1.5).setOrigin(0, 0);
-        healthBar = this.add.image(55, 761, 'healthBar').setScale(1.5).setOrigin(0, 0);
+        bgHealthBar = this.add.image(40, 755, 'bgHealthBar').setScale(1.5).setOrigin(0, 0).setDepth(7);
+        healthBar = this.add.image(55, 761, 'healthBar').setScale(1.5).setOrigin(0, 0).setDepth(7);
 
         //XP bar
-        bgXpBar = this.add.image(140, 755, 'bgXpBar').setScale(1.5).setOrigin(0, 0);
-        xpBar = this.add.image(155, 761, 'xpBar').setScale(1.5).setOrigin(0, 0);
+        bgXpBar = this.add.image(140, 755, 'bgXpBar').setScale(1.5).setOrigin(0, 0).setDepth(7);
+        xpBar = this.add.image(155, 761, 'xpBar').setScale(1.5).setOrigin(0, 0).setDepth(7);
         xpBar.setScale(player.xp, 1.5);
 
         // custom keys
@@ -196,8 +228,30 @@ export default class Game extends Phaser.Scene {
             this.scene.launch('pauseScene')
         }, this);
 
+        // add sound effects
+        gunSound = this.sound.add("gunShot", {
+            loop: false,
+            volume: 0.2
+        });
+        mainMusic = this.sound.add("mainMusic", {
+            loop: true,
+            volume: 0.3
+        });
+        collectOrbs = this.sound.add("collectOrbs", {
+            loop: false,
+            volume: 0.3
+        });
+        levelUpSound = this.sound.add("levelUpSound", {
+            loop: false,
+            volume: 0.4
+        });
+        mainMusic.play();
 
-
+        //this.scene.add(this, IncreaseSpeed, false);
+        //this.scene.get('increase_speed').events.on('upgrade-action', speed => playerSpeed = speed);
+        this.scene.get('upgradeScene').events.on('upgrade-action-speed', speed => playerSpeed += speed = speed);
+        this.scene.get('upgradeScene').events.on('upgrade-action-firerate', firerate => tick += firerate = firerate);
+        this.scene.get('upgradeScene').events.on('upgrade-action-damage', damage => bullet_damage += damage = damage);
     }
 
     update() {
@@ -261,12 +315,14 @@ export default class Game extends Phaser.Scene {
             tick = 0;
             //for fire again
             bullet = this.physics.add.sprite(playerWithGun.x + 45, playerWithGun.y + 50, 'bullet').setScale(0.15);
+            bullet.bullet_damage = 1;
             //move to mouse position 
             this.physics.moveTo(bullet, input.x, input.y, 500);
             bullet.setRotation(angle + Math.PI / 2);
             control = true;
             emitter.setPosition(playerWithGun.x + 50, playerWithGun.y + 60);
             emitter.explode(1);
+            gunSound.play();
             player.anims.pause(player.anims.currentAnim.frames[0]);
             this.physics.add.overlap(bullet, enemy_group, destroy, null, this);
         }
@@ -285,10 +341,11 @@ export default class Game extends Phaser.Scene {
 function spawnEnemies(the, count) {
     for (let i = 0; i < count; i++) {
         let new_enemy_pos = getRandomSpawnPosition();
-        enemy = the.physics.add.sprite(new_enemy_pos[0], new_enemy_pos[1], 'enemy');
+        enemy = the.physics.add.sprite(new_enemy_pos[0], new_enemy_pos[1], 'enemy').setDepth(5);
         enemy.setBounce(1);
         enemy_group.add(enemy);
         enemy.damage = 1;
+        enemy.enemy_health = 3;
         the.physics.add.overlap(enemy, player, enemyAttack, null, the);
         total++;
 
@@ -318,14 +375,19 @@ function getRandomSpawnPosition() {
 
 function destroy(bullet, enemy) {
     bullet.destroy();
-    enemy.disableBody(true, true);
-    blood = this.add.sprite(enemy.body.position.x, enemy.body.position.y, 'blood').setScale(1.5).setDepth(1);
-    blood.play('bloodThing');
-    xpPoint = this.physics.add.sprite(enemy.body.position.x, enemy.body.position.y + 50, 'xpPoint').setScale(1.3);
-    this.physics.add.collider(xpPoint);
-    xpPoint.value = 5;
-    this.physics.add.overlap(xpPoint, player, collectXp, null, this);
-    timedEvent = this.time.delayedCall(3000, removeBlood, [blood], this);
+    enemy.enemy_health -= bullet.bullet_damage;
+    if (enemy.enemy_health <= 0) {
+        bullet.destroy();
+        enemy.disableBody(true, true);
+        blood = this.add.sprite(enemy.body.position.x, enemy.body.position.y, 'blood').setScale(1.5).setDepth(1);
+        blood.play('bloodThing');
+        xpPoint = this.physics.add.sprite(enemy.body.position.x, enemy.body.position.y + 50, 'xpPoint').setScale(1.3);
+        this.physics.add.collider(xpPoint);
+        xpPoint.value = 5;
+        this.physics.add.overlap(xpPoint, player, collectXp, null, this);
+        timedEvent = this.time.delayedCall(3000, removeBlood, [blood], this);
+    }
+
 
 }
 
@@ -334,17 +396,36 @@ function enemyAttack(enemy, player) {
     healthBar.setScale((player.health / player.maxHealth) * 1.5, 1.5);
     if (player.health <= 0) {
         die(player);
+        
     }
 }
 
 function die(player) {
+    playerWithGun.removeAll();
     player.disableBody(true);
-    the.scene.start('startScene');
+    player.setVisible(false);
+    gun.setVisible(false);
+    shadow.setVisible(false);
+    bloodPlayer = the.add.sprite(playerWithGun.body.position.x + 50, playerWithGun.body.position.y + 50 , 'bloodPlayer').setScale(2.5).setDepth(1);
+    bloodPlayer.play('bloodPlayer');
+    mainMusic.stop();
+    the.time.addEvent({
+        delay: 1000,
+        callback: ()=>{
+            the.scene.pause();
+        },
+        loop: true
+    })
+    //the.scene.pause();
+
+    
+    //the.scene.start('startScene');
 }
 
 function collectXp(xpPoint, player) {
     player.xp += xpPoint.value;
     xpPoint.destroy();
+    collectOrbs.play();
     let level_progress = (player.xp / get_necessary_xp(player_level)) * 1.5;
     xpBar.setScale(level_progress, 1.5);
     // check for level up
@@ -363,6 +444,7 @@ function level_up() {
     player.xp = 0;
     xpBar.setScale(0.0, 1.5);
     console.log('level up');
+    levelUpSound.play();
     the.scene.pause();
     the.scene.launch('upgradeScene');
 }
@@ -376,9 +458,11 @@ function removeBlood(blood) {
         repeat: 0,
         yoyo: false,
         onComplete: () => {
-          blood.setAlpha(0);
-          blood.destroy();
-          }
-      });
-   
+            blood.setAlpha(0);
+            blood.destroy();
+        }
+    });
+
 }
+
+// time_event = this.time.addEvent({ delay: 3000, callback: onEvent, callbackScope: this, loop: true });

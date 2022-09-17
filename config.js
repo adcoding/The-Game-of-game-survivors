@@ -13,7 +13,7 @@ let config = {
             debug: false
         }
     },
-    backgroundColor: '#fff',
+    backgroundColor: '#1a1d2d',
     scene: [ StartScene, Game , Credits, PauseScene, Upgrade]
 };
 

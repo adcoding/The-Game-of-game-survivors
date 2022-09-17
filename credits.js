@@ -3,6 +3,8 @@ let player;
 let title;
 let goBackText;
 
+let UIsound2;
+
 export default class Credits extends Phaser.Scene {
     constructor() {
         super('credits');
@@ -15,6 +17,8 @@ export default class Credits extends Phaser.Scene {
             frameWidth: 126,
             frameHeight: 126
         });
+
+        this.load.audio("UIsound2", ["Assets/Sounds/uisound.mp3"]);
 
     }
 
@@ -53,8 +57,11 @@ export default class Credits extends Phaser.Scene {
         }).setOrigin(0.5).setInteractive();
 
         goBackText.on('pointerdown', () => {
+            UIsound2.play();
             this.scene.start('startScene');
         });
+
+        UIsound2 = this.sound.add("UIsound", { loop: false , volume: 1});
 
     }
 
