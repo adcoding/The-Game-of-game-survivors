@@ -3,6 +3,7 @@ import StartScene from './startScene.js';
 import Credits from './credits.js';
 import PauseScene from  './pauseScene.js';
 import Upgrade from './upgradeScene.js';
+import GameOver from './gameOver.js';
 
 let config = {
     width: 1152,
@@ -14,7 +15,7 @@ let config = {
         }
     },
     backgroundColor: '#1a1d2d',
-    scene: [ StartScene, Game , Credits, PauseScene, Upgrade]
+    scene: [ StartScene, Game , Credits, PauseScene, Upgrade, GameOver]
 };
 
 let game = new Phaser.Game(config);

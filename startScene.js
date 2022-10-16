@@ -5,6 +5,7 @@ let playText;
 let creditsText;
 
 let UIsound;
+let customCursor;
 
 export default class StartScene extends Phaser.Scene {
     constructor() {
@@ -27,13 +28,16 @@ export default class StartScene extends Phaser.Scene {
         const screenCenterX = this.cameras.main.worldView.x + this.cameras.main.width / 2;
         const screenCenterY = this.cameras.main.worldView.y + this.cameras.main.height / 2;
 
+        customCursor = this.input.setDefaultCursor('url(Assets/UI/cursor.cur), pointer');
+        this.input.manager.canvas.style.cursor = customCursor;
+
         bg = this.add.image(screenCenterX, screenCenterY, 'bg');
 
         this.add.ellipse(screenCenterX, screenCenterY - 65, 50, 10, 0x000);
 
         player = this.physics.add.sprite(screenCenterX, screenCenterY - 90, 'player').setScale(0.6);
 
-        title = this.add.text(screenCenterX, screenCenterY, 'THE\nGAME', {
+        title = this.add.text(screenCenterX, screenCenterY, 'THE GAME OF\nGAME SURVIVORS', {
             fontFamily: 'dogicaPixel',
             fontSize: '40px',
             align: 'center'

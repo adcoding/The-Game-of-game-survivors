@@ -2,6 +2,8 @@ let bg;
 let player;
 let title;
 let goBackText;
+let link;
+let thanks;
 
 let UIsound2;
 
@@ -50,6 +52,20 @@ export default class Credits extends Phaser.Scene {
             align: 'center'
         }).setOrigin(0.5);
 
+        thanks = this.add.text(screenCenterX, screenCenterY + 100, 'Special thanks to:\nJosé Pablo PS, Peppe, Rafael Souza', {
+            fontFamily: 'dogicaPixel',
+            fontSize: '20px',
+            align: 'center',
+            lineSpacing: 10
+        }).setOrigin(0.5);
+
+        link = this.add.text(screenCenterX, screenCenterY + 200, 'Support', {
+            fontFamily: 'dogicaPixel',
+            fontSize: '20px',
+            align: 'center'
+        }).setOrigin(0.5).setInteractive();
+
+
         goBackText = this.add.text(screenCenterX, screenCenterY + 300, 'Back', {
             fontFamily: 'dogicaPixel',
             fontSize: '20px',
@@ -61,7 +77,10 @@ export default class Credits extends Phaser.Scene {
             this.scene.start('startScene');
         });
 
-        UIsound2 = this.sound.add("UIsound", { loop: false , volume: 1});
+        UIsound2 = this.sound.add("UIsound", {
+            loop: false,
+            volume: 1
+        });
 
     }
 
@@ -74,6 +93,16 @@ export default class Credits extends Phaser.Scene {
         goBackText.on('pointerout', function (pointer) {
             goBackText.setScale(1);
         })
+
+        link.on('pointerover', function (pointer) {
+            link.setScale(1.5);
+        })
+
+        link.on('pointerout', function (pointer) {
+            link.setScale(1);
+        })
+
+        link.on('pointerup', () => { window.open('https://www.patreon.com/adcoding'); });
 
     }
 }

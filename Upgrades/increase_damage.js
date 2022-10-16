@@ -26,7 +26,7 @@ export default class IncreaseDamage extends Phaser.Scene {
             align: 'center'
         }).setOrigin(0.5);
 
-        increase_damage_description = this.add.text(0, 0, 'Lorem ipsum\ndolor sit amet', {
+        increase_damage_description = this.add.text(0, 0, 'Increases bullet \ndamage by 1', {
             fontFamily: 'dogicaPixel',
             fontSize: '15px',
             align: 'center'
