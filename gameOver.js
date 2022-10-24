@@ -2,6 +2,7 @@ let bg;
 let text;
 let exit;
 let UIsound;
+let bloodP;
 
 export default class GameOver extends Phaser.Scene {
     constructor() {
@@ -11,6 +12,11 @@ export default class GameOver extends Phaser.Scene {
     preload() {
         this.load.image('bg', 'Assets/UI/bg.png')
         this.load.audio("UIsound", ["Assets/Sounds/uisound.mp3"]);
+
+        this.load.spritesheet('bloodP', 'Assets/Particles/bloodPlayerLarge.png', {
+            frameWidth: 400,
+            frameHeight: 400
+        });
     }
 
     create() {
@@ -24,21 +30,39 @@ export default class GameOver extends Phaser.Scene {
             fontFamily: 'dogicaPixel',
             fontSize: '50px',
             align: 'center'
-        }).setOrigin(0.5);
+        }).setOrigin(0.5).setDepth(2);
 
         exit = this.add.text(screenCenterX, screenCenterY + 200, 'Main Menu', {
             fontFamily: 'dogicaPixel',
             fontSize: '20px',
             align: 'center'
-        }).setOrigin(0.5).setInteractive();
+        }).setOrigin(0.5).setInteractive().setDepth(2);
 
-        UIsound = this.sound.add("UIsound", { loop: false , volume: 1});
+        UIsound = this.sound.add("UIsound", {
+            loop: false,
+            volume: 1
+        });
 
         exit.on('pointerdown', () => {
+            this.scene.stop('gameOver');
+            //this.scene.stop('game');
             this.scene.start('startScene');
-            
+
             UIsound.play();
         });
+
+        this.anims.create({
+            key: 'bloodP',
+            frames: this.anims.generateFrameNumbers('bloodP', {
+                start: 0,
+                end: 12
+            }),
+            frameRate: 40,
+            repeat: 0
+        });
+
+        bloodP = this.add.sprite(screenCenterX, screenCenterY - 10, 'bloodP').setScale(2.5).setDepth(1);
+        bloodP.play('bloodP');
     }
 
     update() {
@@ -49,6 +73,8 @@ export default class GameOver extends Phaser.Scene {
         exit.on('pointerout', function (pointer) {
             exit.setScale(1);
         })
+
+        
     }
 
 }

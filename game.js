@@ -32,7 +32,7 @@ let playerDirectionY = 0;
 let playerDirectionX = 0;
 let playerSpeed = 250;
 let tick = 0;
-let something = 10;
+let firerateTick = 10;
 let health;
 let maxHealth;
 let healthBar;
@@ -218,11 +218,11 @@ export default class Game extends Phaser.Scene {
 		test = this.time.now;
 		the = this;
 
-		playerWithGun = this.add.container(width / 2, height / 2, [shadow, player, gun, bullet]).setDepth(3).setSize(56, 56);
+		playerWithGun = this.add.container(width / 2, height / 2, [shadow, player, gun, bullet]).setDepth(3).setSize(30, 30);
 		this.physics.world.enable(playerWithGun);
-		playerWithGun.body.setOffset(35, 40)
-		
-			
+		playerWithGun.body.setOffset(35, 40) // 35 40
+
+
 		playerWithGun.body.setCollideWorldBounds(true);
 		mouse = this.input.mousePointer;
 
@@ -231,7 +231,7 @@ export default class Game extends Phaser.Scene {
 			delay: 40000,
 			callback: spawnBoss,
 			callbackScope: this,
-			loop: false
+			loop: true
 		});
 
 		enemyTwo_timer = this.time.addEvent({
@@ -390,7 +390,7 @@ export default class Game extends Phaser.Scene {
 		});
 		mainMusic = this.sound.add("mainMusic", {
 			loop: true,
-			volume: 0.3
+			volume: 0.2
 		});
 		collectOrbs = this.sound.add("collectOrbs", {
 			loop: false,
@@ -412,15 +412,16 @@ export default class Game extends Phaser.Scene {
 
 		//this.scene.add(this, IncreaseSpeed, false);
 		//this.scene.get('increase_speed').events.on('upgrade-action', speed => playerSpeed = speed);
+
 		this.scene.get('upgradeScene').events.on('upgrade-action-speed', speed => playerSpeed += speed = speed);
-		this.scene.get('upgradeScene').events.on('upgrade-action-firerate', firerate => something -= firerate = firerate);
-		this.scene.get('upgradeScene').events.on('upgrade-action-damage', damage => bullet_damage += damage = damage);
+		this.scene.get('upgradeScene').events.on('upgrade-action-firerate', firerate => firerateTick -= firerate = firerate);
+		this.scene.get('upgradeScene').events.on('upgrade-action-damage', damage => bullet.damage += damage = damage);
 
 		let decoration1 = this.add.image(200, 200, 'decoration1').setScale(0.5).setDepth(7);
 		let decoration2 = this.add.image(900, 400, 'decoration2').setScale(0.6).setDepth(7);
 		let rock1 = this.add.image(150, 500, 'rock1').setScale(0.7).setDepth(7);
 		let rock2 = this.add.image(300, 600, 'rock2').setScale(0.6).setDepth(7);
-		let rock3 = this.add.image(700, 80, 'rock3').setScale(0.5).setDepth(7);
+		let rock3 = this.add.image(800, 180, 'rock3').setScale(0.5).setDepth(7);
 
 		let grass1 = this.add.image(930, 600, 'grass1').setScale(1);
 		let grass2 = this.add.image(900, 300, 'grass2').setScale(1);
@@ -492,11 +493,12 @@ export default class Game extends Phaser.Scene {
 
 
 		tick += 1;
-		if (tick > something) {
+		if (tick > firerateTick) {
+			//console.log(firerateTick);
 			tick = 0;
 			//for fire again
 			bullet = this.physics.add.sprite(playerWithGun.x + 45, playerWithGun.y + 50, 'bullet').setScale(0.15);
-			bullet.bullet_damage = 1;
+			bullet.damage = 1;
 			//move to mouse position 
 			this.physics.moveTo(bullet, input.x, input.y, 500);
 			bullet.setRotation(angle + Math.PI / 2);
@@ -532,14 +534,14 @@ export default class Game extends Phaser.Scene {
 }
 
 function spawnBoss() {
-	boss = this.physics.add.sprite(0, 300, 'boss').setScale(0.8)
+	boss = this.physics.add.sprite(0, 300, 'boss').setScale(0.8).setDepth(5);
 	this.physics.add.collider(playerWithGun, boss, (playerWithGun, boss) => {}, null, this);
 	boss_group.add(boss);
 	boss_group.playAnimation('bossWalk');
-	boss.boss_health = 100;
-	boss.boss_speed = 50,
-		boss.boss_damage = 10;
-	the.physics.add.overlap(boss, player, bossAttack, null, the);
+	boss.health = 100;
+	boss.boss_speed = 40;
+	boss.damage = 3;
+	the.physics.add.overlap(boss, player, enemyAttack, null, the);
 }
 
 function spawnEnemies(the, count) {
@@ -549,7 +551,7 @@ function spawnEnemies(the, count) {
 		enemy.setBounce(1);
 		enemy_group.add(enemy);
 		enemy.damage = 1;
-		enemy.enemy_health = 3;
+		enemy.health = 3;
 		the.physics.add.overlap(enemy, player, enemyAttack, null, the);
 		total++;
 	}
@@ -562,9 +564,9 @@ function spawnEnemiesTwo(the, count) {
 		enemyTwo = the.physics.add.sprite(new_enemy_pos[0], new_enemy_pos[1], 'enemyTwo').setDepth(5).setScale(0.8);
 		enemyTwo.setBounce(1);
 		enemyTwo_group.add(enemyTwo);
-		enemyTwo.enemyTwo_damage = 1;
-		enemyTwo.enemyTwo_health = 1;
-		the.physics.add.overlap(enemyTwo, player, enemyTwoAttack, null, the);
+		enemyTwo.damage = 1;
+		enemyTwo.health = 1;
+		the.physics.add.overlap(enemyTwo, player, enemyAttack, null, the);
 		total++;
 
 	}
@@ -590,12 +592,17 @@ function getRandomSpawnPosition() {
 	return [x | 0, y | 0];
 }
 
+function spawnEnemiesTwoTesting() {
+	spawnEnemiesTwo(this, 10);
+	enemyTwo_group.playAnimation('enemyTwoIdle');
+}
+
 function destroy(bullet, enemy) {
 	bullet.destroy();
 	enemyFlash(enemy);
-	enemy.enemy_health -= bullet.bullet_damage;
-	if (enemy.enemy_health <= 0) {
-		bullet.destroy();
+	enemy.health -= bullet.damage;
+
+	if (enemy.health <= 0) {
 		enemy.disableBody(true, true);
 		blood = this.add.sprite(enemy.body.position.x, enemy.body.position.y, 'blood').setScale(1.5).setDepth(1);
 		blood.play('bloodThing');
@@ -605,45 +612,14 @@ function destroy(bullet, enemy) {
 		this.physics.add.overlap(xpPoint, player, collectXp, null, this);
 		timedEvent = this.time.delayedCall(3000, removeBlood, [blood], this);
 		dropHearts();
-	}
-}
-
-function enemyFlash(enemy) {
-	enemy.setTint(0xffffff);
-	enemy.tintFill= true;
-	the.tweens.add({
-		targets: enemy,
-	  ease: 'Cubic.easeOut',  
-	  duration: 200,
-	  onComplete: function () { enemy.clearTint(); }
-	  })
-}
-
-function playerFlash(player) {
-	player.setTint(0xff0000);
-	player.tintFill= true;
-	the.tweens.add({
-		targets: player,
-	  ease: 'Cubic.easeOut',  
-	  duration: 200,
-	  onComplete: function () { player.clearTint(); }
-	  })
-}
-
-function setPlayerImmortal(player) {
-	player.immortal = true;
-	the.tweens.add({
-		targets: player,
-		ease: 'Cubic.easeOut',  
-		duration: 200,
-		onComplete: function () { player.immortal = false; }
-	})
+	};
 }
 
 function destroyEnemy2(bullet, enemyTwo) {
 	bullet.destroy();
-	enemyTwo.enemyTwo_health -= bullet.bullet_damage;
-	if (enemyTwo.enemyTwo_health <= 0) {
+	enemyTwoFlash(enemyTwo);
+	enemyTwo.health -= bullet.damage;
+	if (enemyTwo.health <= 0) {
 		bullet.destroy();
 		enemyTwo.disableBody(true, true);
 		bloodTwo = this.add.sprite(enemyTwo.body.position.x, enemyTwo.body.position.y, 'bloodTwo').setScale(1.5).setDepth(1);
@@ -658,8 +634,9 @@ function destroyEnemy2(bullet, enemyTwo) {
 
 function destroyBoss(bullet, boss) {
 	bullet.destroy();
-	boss.boss_health -= bullet.bullet_damage;
-	if (boss.boss_health <= 0) {
+	bossFlash(boss);
+	boss.health -= bullet.damage;
+	if (boss.health <= 0) {
 		bullet.destroy();
 		boss.disableBody(true, true);
 		bloodBoss = this.add.sprite(boss.body.position.x, boss.body.position.y, 'bloodBoss').setScale(2).setDepth(1);
@@ -672,28 +649,85 @@ function destroyBoss(bullet, boss) {
 	}
 }
 
+function enemyFlash(enemy) {
+	enemy.setTint(0xffffff);
+	enemy.tintFill = true;
+	the.tweens.add({
+		targets: enemy,
+		ease: 'Cubic.easeOut',
+		duration: 200,
+		onComplete: function () {
+			enemy.clearTint();
+		}
+	})
+}
+
+function enemyTwoFlash(enemyTwo) {
+	enemyTwo.setTint(0xffffff);
+	enemyTwo.tintFill = true;
+	the.tweens.add({
+		targets: enemyTwo,
+		ease: 'Cubic.easeOut',
+		duration: 200,
+		onComplete: function () {
+			enemyTwo.clearTint();
+		}
+	})
+}
+
+function bossFlash(boss) {
+	boss.setTint(0xffffff);
+	boss.tintFill = true;
+	the.tweens.add({
+		targets: boss,
+		ease: 'Cubic.easeOut',
+		duration: 200,
+		onComplete: function () {
+			boss.clearTint();
+		}
+	})
+}
+
+function playerFlash(player) {
+	player.setTint(0xcc3636);
+	player.tintFill = true;
+	the.tweens.add({
+		targets: player,
+		ease: 'Cubic.easeOut',
+		duration: 200,
+		onComplete: function () {
+			player.clearTint();
+		}
+	})
+}
+
+function setPlayerImmortal(player) {
+	player.immortal = true;
+	the.tweens.add({
+		targets: player,
+		ease: 'Cubic.easeOut',
+		duration: 200,
+		onComplete: function () {
+			player.immortal = false;
+		}
+	})
+}
+
+
+
 function enemyAttack(enemy, player) {
 	dealDamageToPlayer(enemy.damage, player);
 }
 
-function enemyTwoAttack(enemyTwo, player) {
-	dealDamageToPlayer(enemyTwo.enemyTwo_damage, player);
-}
-
-function bossAttack(boss, player) {
-	dealDamageToPlayer(boss.boss_damage, player);
-}
-
 function dealDamageToPlayer(damage, player) {
-	if (player.immortal == true){
+	if (player.immortal == true) {
 		return;
 	}
 	player.health -= damage;
 	healthBar.setScale((player.health / player.maxHealth) * 1.5, 1.5);
 	if (player.health <= 0) {
 		die(player);
-	}
-	else {
+	} else {
 		playerFlash(player);
 		setPlayerImmortal(player);
 	}
@@ -704,13 +738,12 @@ function enemyWave() {
 	enemy_group.playAnimation('enemyIdle');
 }
 
-function spawnEnemiesTwoTesting() {
-	spawnEnemiesTwo(this, 10);
-	enemyTwo_group.playAnimation('enemyTwoIdle');
-}
+
 
 function die(player) {
 	playerWithGun.removeAll();
+	bullet.destroy();
+	console.log('die')
 	player.disableBody(true);
 	player.setVisible(false);
 	gun.setVisible(false);
@@ -722,13 +755,14 @@ function die(player) {
 	the.time.addEvent({
 		delay: 600,
 		callback: () => {
-			the.scene.stop('game');
-			the.scene.start('gameOver');
-
 			// reset initial values
 			player_level = 1;
 			playerSpeed = 250;
 			bullet_damage = 1;
+			firerateTick = 10;
+			the.scene.stop('game');
+			the.scene.start('gameOver');
+			
 		},
 		loop: true
 	})
@@ -810,7 +844,7 @@ function removeBloodBoss(bloodBoss) {
 }
 
 function dropHearts() {
-	if(Phaser.Math.Between(1, 5) === 5){
+	if (Phaser.Math.Between(1, 5) === 5) {
 		heartPoints = the.physics.add.sprite(enemy.body.position.x, enemy.body.position.y, 'heartPoints').setScale(0.8);
 		the.physics.add.collider(heartPoints);
 		heartPoints.heartPoints_value = 5;
@@ -825,4 +859,3 @@ function collectHearts(heartPoints, player) {
 	collectHeartSound.play();
 
 }
-

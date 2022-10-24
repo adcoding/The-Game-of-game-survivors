@@ -26,10 +26,11 @@ export default class IncreaseFireRate extends Phaser.Scene {
             align: 'center'
         }).setOrigin(0.5);
 
-        increase_firerate_description = this.add.text(0, 0, 'Increases fireate\nby 1', {
+        increase_firerate_description = this.add.text(0, 0, 'Increases fireate\nby 0.5', {
             fontFamily: 'dogicaPixel',
             fontSize: '15px',
-            align: 'center'
+            align: 'center',
+            lineSpacing: 10
         }).setOrigin(0.5);
 
         increase_firerate_btn = this.add.text(0, 120, 'UPGRADE', {
@@ -41,15 +42,14 @@ export default class IncreaseFireRate extends Phaser.Scene {
         cardR = this.add.container(screenCenterX + 350, screenCenterY, [rectR, increase_firerate_title, increase_firerate_description, increase_firerate_btn]);
 
         increase_firerate_btn.on('pointerdown', () => {
-            this.events.emit('upgrade-firerate', 1);
-            
+            this.events.emit('upgrade-firerate', 0.5); // set to 0.5 after debug
             // back to the game
             this.scene.stop();
-            this.scene.stop('upgradeScene')
-            this.scene.remove('increase_speed')
-            this.scene.remove('increase_damage')
+            this.scene.stop('upgradeScene');
+            this.scene.remove('increase_speed');
+            this.scene.remove('increase_damage');
             this.scene.resume('game');
-            this.scene.remove()
+            this.scene.remove();
         });
     }
 

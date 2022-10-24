@@ -29,7 +29,8 @@ export default class IncreaseDamage extends Phaser.Scene {
         increase_damage_description = this.add.text(0, 0, 'Increases bullet \ndamage by 1', {
             fontFamily: 'dogicaPixel',
             fontSize: '15px',
-            align: 'center'
+            align: 'center',
+            lineSpacing: 10
         }).setOrigin(0.5);
 
         increase_damage_btn = this.add.text(0, 120, 'UPGRADE', {
